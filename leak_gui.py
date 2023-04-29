@@ -542,7 +542,7 @@ def PANEL_USE():
           methods_load = 'UDP'
           CLI_COLOR('atk')
        else:
-          print(f'{fg(40)}HIT {fg(41)}890+ {fg(42)}MB {fg(43)}PUT {fg(44)}64999 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
+          print(f'{fg(40)}HIT {fg(41)}900+ {fg(42)}MB {fg(43)}PUT {fg(44)}65507 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
     elif arg_load[0] == 'EXEC':
        mode_attack = input("LOAD SCRIPT (FILES or INPUT) $").upper()
        if mode_attack == 'INPUT':
