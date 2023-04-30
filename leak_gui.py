@@ -592,7 +592,7 @@ def PANEL_USE():
           print(f'{fg(202)}STOP {fg(203)}ATTACK {fg(204)}IT {fg(205)}TRUE{attr(0)}')
           stop_command = True
     elif arg_load[0] == 'PING':
-       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.RED}l3{Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
+       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.RED}l3{Fore.WHITE},{Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
        if methods_type.upper() == 'L7' or methods_type.upper() == 'LAYER7' or methods_type.upper() == '7':
            tar = str(input(f"{Fore.CYAN}URL {Fore.WHITE}${Fore.RESET}"))
            try:
@@ -633,7 +633,7 @@ def PANEL_USE():
                end_time = time.time()
                rtt_ms = (end_time - start_time) * 1000
                print(f"{Fore.GREEN}CONNECTION{Fore.WHITE}={Fore.LIGHTCYAN_EX}OK {Fore.YELLOW}( {round(rtt_ms, 2)} ms ){Fore.RESET}")
-           except:
+           except TapError:
                print(f'{Fore.RED}{IP} CONNECTION {Fore.LIGHTRED_EX}TIMEOUT . . .{Fore.RESET}')
     else:
        print(f"{fg(196)}{console_prompt} NOT FOUND COMMAND ! {attr(0)}")
@@ -667,3 +667,4 @@ def checker_login():
      print(f"{Fore.RED}FAILED {Fore.YELLOW}LOGIN . . .{Fore.RESET}")
      time.sleep(1)
      checker_login()
+checker_login()
