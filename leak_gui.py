@@ -1,7 +1,7 @@
 from colored import fg,bg,attr
 import socket,ssl,threading,random,string,sys,warnings,time,requests
 from urllib.parse import urlparse
-import platform,os
+import platform,os,struct
 from colorama import Fore
 from other_data import FILES_MAKER,GET_TIME
 
@@ -339,7 +339,15 @@ def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS):
            threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS)).start()
            threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
            threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
-
+  
+def calculate_checksum(packet):
+    total = 0
+    for i in range(0, len(packet), 2):
+        total += (packet[i] << 8) + packet[i+1]
+    total = (total & 0xffff) + (total >> 16)
+    checksum = (~total) & 0xffff
+    return checksum
+           
 def CLI_COLOR(mode):
     global target_load,port_load,methods_load
     try:
@@ -584,7 +592,7 @@ def PANEL_USE():
           print(f'{fg(202)}STOP {fg(203)}ATTACK {fg(204)}IT {fg(205)}TRUE{attr(0)}')
           stop_command = True
     elif arg_load[0] == 'PING':
-       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
+       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.RED}l3{Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
        if methods_type.upper() == 'L7' or methods_type.upper() == 'LAYER7' or methods_type.upper() == '7':
            tar = str(input(f"{Fore.CYAN}URL {Fore.WHITE}${Fore.RESET}"))
            try:
@@ -593,8 +601,10 @@ def PANEL_USE():
            except:
                print(f"{fg(196)}CONNECTION {fg(197)}STATUS_CODE=NULL {fg(198)}REASON=NULL{attr(0)}")
                pass
-       else:
+       elif methods_type.upper() == 'L4' or methods_type.upper() == 'LAYER4' or methods_type.upper() == '4':
+
            status_code_tcp = False
+
            IP = str(input(f'{Fore.LIGHTBLUE_EX}IP ${Fore.RESET}'))
            PORT = int(input(f'{Fore.BLUE}PORT ${Fore.RESET}'))
            try:
@@ -609,6 +619,22 @@ def PANEL_USE():
                print(f"{Fore.GREEN}CONNECTION=OK {Fore.LIGHTGREEN_EX}DATA_RECV={d.decode()}{Fore.RESET}")
            else:
                print(f"{Fore.RED}CONNECTION=NO {Fore.LIGHTRED_EX}DATA_RECV=NULL{Fore.RESET}")
+       else:
+           IP = str(input(f'{Fore.LIGHTBLUE_EX}IP ${Fore.RESET}'))
+           try:
+               ICMP = struct.pack("!BBHHH", 8, 0, 0, 0, 0)
+               icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+               icmp_socket.settimeout(1.0)
+               checksum = calculate_checksum(ICMP)
+               icmp_packet = struct.pack("!BBHHH", 8, 0, checksum, 0, 0)
+               start_time = time.time()
+               icmp_socket.sendto(icmp_packet, (IP, 0))
+               icmp_socket.recv(65536)
+               end_time = time.time()
+               rtt_ms = (end_time - start_time) * 1000
+               print(f"{Fore.GREEN}CONNECTION{Fore.WHITE}={Fore.LIGHTCYAN_EX}OK {Fore.YELLOW}( {round(rtt_ms, 2)} ms ){Fore.RESET}")
+           except:
+               print(f'{Fore.RED}{IP} CONNECTION {Fore.LIGHTRED_EX}TIMEOUT . . .{Fore.RESET}')
     else:
        print(f"{fg(196)}{console_prompt} NOT FOUND COMMAND ! {attr(0)}")
     PANEL_USE()
