@@ -1,0 +1,15 @@
+{
+    "LOGIN":{
+        "USER1":"X",
+        "USER2":"XX",
+        "USER3":"XXX"
+    },
+    "IP":"XXX.XXX.XXX.XXX",
+    "KEYS":"XXXX",
+    "PLANS_ID":"XXXXX",
+    "STATUS":"XXXXXX",
+    "CHECK_UPDATE": {
+         "AUTO":"XXXXXXX",
+         "URL":"XXXXXXXX"
+    }
+}
