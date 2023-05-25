@@ -1,15 +1,15 @@
 {
     "LOGIN":{
-        "USER1":"\a",
+        "USER1":"\\a",
         "USER2":"\b",
         "USER3":"\c"
     },
     "IP":"\d",
-    "KEYS":"\e",
+    "KEYS":"\\e",
     "PLANS_ID":"\f",
-    "STATUS":"\g",
+    "STATUS":"\\g",
     "CHECK_UPDATE": {
-         "AUTO":"\h",
-         "URL":"\i"
+         "AUTO":"\\h",
+         "URL":"\\i"
     }
 }
