@@ -1,15 +1,15 @@
 {
     "LOGIN":{
-        "USER1":"X",
-        "USER2":"XX",
-        "USER3":"XXX"
+        "USER1":"\a",
+        "USER2":"\b",
+        "USER3":"\c"
     },
-    "IP":"XXX.XXX.XXX.XXX",
-    "KEYS":"XXXX",
-    "PLANS_ID":"XXXXX",
-    "STATUS":"XXXXXX",
+    "IP":"\d",
+    "KEYS":"\e",
+    "PLANS_ID":"\f",
+    "STATUS":"\g",
     "CHECK_UPDATE": {
-         "AUTO":"XXXXXXX",
-         "URL":"XXXXXXXX"
+         "AUTO":"\h",
+         "URL":"\i"
     }
 }
