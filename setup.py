@@ -7,14 +7,16 @@ pip install requests
 pip install cryptography
 pip install colored
 pip install colorama
-pip install discord-webhook''')
+pip install discord-webhook
+pip install PySocks''')
 else:
     os.system('''python -m pip install pybase64
 python -m pip install requests
 python -m pip install cryptography
 python -m pip install colored
 python -m pip install colorama
-python -m pip install discord-webhook''')
+python -m pip install discord-webhook
+python -m pip install PySocks''')
 print('DONE INSTALL')
 os.system(f"python {os.path.join(os.path.dirname(__file__),'main.py')}")
 os.remove(__file__)
