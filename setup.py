@@ -6,6 +6,7 @@ def scan(path):
     allFiles = []
     for home, sub_files, file_list_s in os.walk(path):
         for name_files in file_list_s:
+            print(name_files)
             allFiles.append(os.path.join(home, name_files))
     return allFiles
 
@@ -26,9 +27,11 @@ try:
                    except:
                       print(f"{a} FAILED REMOVE . . .")
                 if platform.system().upper() == 'WINDOWS':
+                   os.system('del SOCKETEXPLODE_DOSTOOL')
                    os.system('start https://github.com/Hex1629/SOCKETEXPLODE_DOSTOOL')
                    os.system('echo WEBSITE STARTING . . . ^_^')
                 else:
+                   os.system('rm -rf SOCKETEXPLODE_DOSTOOL')
                    os.system('git clone https://github.com/Hex1629/SOCKETEXPLODE_DOSTOOL')
                    os.system('echo GIT CLONE RUNNING ^_^')
               else:
