@@ -49,6 +49,8 @@ except:
         import pybase64
         if return_check == True:
            break
+        elif return_check == None:
+           return_check = True
      except ModuleNotFoundError as e:
       return_check = True
       a = f'{e}'.replace("No module named '","").replace("'","")
@@ -60,8 +62,9 @@ except:
            a = 'PySocks'
         print(f'[{PIP_LOAD[0]}] --> {a}')
         os.system(f'{PIP_LOAD[0]} {a}')
-    with open(os.path.join(os.path.dirname(__file__),'SETUP.config'),'r') as f:
-        data = 'INSTALLER'
+        break
+    with open(os.path.join(os.path.dirname(__file__),'SETUP.config'),'w') as f:
+        f.write('INSTALLER')
     print("! PASSED ! [ NEXT PLS RUNNING MY TOOLS WITH python main.py ]")
     os.system(f"python {os.path.join(os.path.dirname(__file__),'main.py')}")
     os.remove(__file__)
