@@ -3,11 +3,12 @@ import os
 import requests
 from cryptography.fernet import Fernet
 import base64
+from leak_gui import checker_login,PANEL_USE
 
 running_new = None
 cap = None
 try:
-    with open(os.path.dirname(__file__)+'\SETTING\captcha.txt', 'r') as f:
+    with open(os.path.dirname(__file__)+'/SETTING/captcha.txt', 'r') as f:
         outage = f.read()
     print("PASSED CAPTCHA [200 OK]")
     cap = False
@@ -36,10 +37,10 @@ for api in api_sxptool:
 
 if cap:
     try:
-        with open(os.path.dirname(__file__)+'\SETTING\setting.json', 'r') as f:
+        with open(os.path.dirname(__file__)+'/SETTING/setting.json', 'r') as f:
             a = f.read()
         try:
-            os.remove(os.path.dirname(__file__)+'\SETTING\setting.json')
+            os.remove(os.path.dirname(__file__)+'/SETTING/setting.json')
             exit("RESTART NEW")
         except Exception as e:
             print(e)
@@ -63,14 +64,15 @@ if cap:
         if len(passed_api) != 0:
             r = requests.get('https://raw.githubusercontent.com/Hex1629/SOCKETEXPLODE_DOSTOOL/main/payload_config.json')
             try:
-                os.makedirs(os.path.dirname(__file__)+'\\SETTING')
+                target_directory = os.path.join(os.path.dirname(__file__), 'SETTING/')
+                os.makedirs(target_directory, exist_ok=True)
             except:
                 pass
-            with open(os.path.dirname(__file__)+'\SETTING\captcha.txt', 'w') as f2:
+            with open(os.path.join(target_directory+'captcha.txt'), 'w') as f2:
                 f2.write("CAPTCHA")
-            with open(os.path.dirname(__file__)+'\SETTING\key.txt', 'wb') as f3:
+            with open(os.path.join(target_directory+'key.txt'), 'wb') as f3:
                 f3.write(FERNET_KEYS)
-            with open(os.path.dirname(__file__)+'\SETTING\setting.json', 'w') as f:
+            with open(os.path.join(target_directory+'setting.json'), 'w') as f:
                 data = r.content.decode()
                 for string_got in object_str:
                     put_data = string_got.split("|")
@@ -85,7 +87,7 @@ else:
         print('[ -100 ] SXP.TOOLS CONNECT TO SERVER [ FAILED ]')
         exit('SXP.TOOLS CONNECT FAILED')
     running_new = True
-    with open(os.path.dirname(__file__)+'\SETTING\key.txt', 'r') as f:
+    with open(os.path.dirname(__file__)+'/SETTING/key.txt', 'r') as f:
         a = f.read()
         try:
             FERNET_KEYS = a
@@ -126,6 +128,8 @@ if running_new:
                         save_content = save_content.replace('UPDATE', 'SHUTDOWN').replace('\\e', 'SHUTDOWN').replace('\\','')
                         print("SHUTDOWN . . .")
                         shut = 1
+                    elif 'NORMAL' == conn_data[0]:
+                        print("IT NORMAL NOW ^_^")
                     else:
                         if '\\e' in j['KEYS'] or 'SHUTDOWN' in j['KEYS']:
                             print("Performing update...")
@@ -159,6 +163,7 @@ if running_new:
                 exit("SYSTEM IS FAILED BY SHUTDOWN")
             else:
                 print("RUNNING SXP.TOOLS MAIN . . .")
+                checker_login()
 else:
     print("restart program pls [ -001 ]")
     exit(1)
