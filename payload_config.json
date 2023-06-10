@@ -8,7 +8,7 @@
     "KEYS":"\\e",
     "PLANS_ID":"\f",
     "STATUS":"\\g",
-    "CHECK_UPDATE": {
+    "CHECK": {
          "AUTO":"\\h",
          "URL":"\\i"
     }
