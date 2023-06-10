@@ -10,7 +10,7 @@ cap = None
 try:
     with open(os.path.dirname(__file__)+'/SETTING/captcha.txt', 'r') as f:
         outage = f.read()
-    print("PASSED CAPTCHA [200 OK]")
+    print("CAPTCHA [200 OK]")
     cap = False
 except FileNotFoundError:
     print("FAILED")
@@ -26,10 +26,10 @@ for api in api_sxptool:
             if 'www.google.com' not in api:
                 if api not in passed_api:
                     passed_api.append(api)
-                print(f"{api} PASSED...")
+                print(f"{api} OK...")
             else:
                 passed_api.append(f'{api}|CONNECTED')
-                print(f"{api} PASSED...")
+                print(f"{api} OK...")
         else:
             print(f"{api} DOWN...")
     except Exception as e:
