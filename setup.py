@@ -49,6 +49,7 @@ except:
         import discord_webhook
         import colorsys
         import colorama
+        import colored
         import pybase64
         if return_check == True:
            break
