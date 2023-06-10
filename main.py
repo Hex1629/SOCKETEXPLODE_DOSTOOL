@@ -118,11 +118,11 @@ if running_new:
             with open(os.path.dirname(__file__) + '/SETTING/setting.json', 'r') as f:
                 save_content = f.read()
             j = json.loads(save_content)
-            print(j['CHECK_UPDATE']['AUTO'])
-            if j['CHECK_UPDATE'].get('AUTO',False):
+            print(j['CHECK']['AUTO'])
+            if j['CHECK'].get('AUTO',False):
                  print("Checking for updates...")
                  try:
-                    r = requests.get(j['CHECK_UPDATE']['URL'])
+                    r = requests.get(j['CHECK']['URL'])
                     conn_data = r.content.decode().replace('\n','').split('#')
                     if 'SHUTDOWN' == conn_data[0]:
                         save_content = save_content.replace('UPDATE', 'SHUTDOWN').replace('\\e', 'SHUTDOWN').replace('\\','')
