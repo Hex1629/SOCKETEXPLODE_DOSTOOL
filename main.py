@@ -17,7 +17,7 @@ except FileNotFoundError:
     cap = True
 
 passed_api = []
-api_sxptool = ['https://www.google.com', 'https://sxptoolsapi.idkotherhex1629.repl.co/', 'https://ipwho.is/']
+api_sxptool = ['https://www.google.com', 'https://sxpapitool.idkotherhex1629.repl.co/', 'https://ipwho.is/']
 
 for api in api_sxptool:
     try:
