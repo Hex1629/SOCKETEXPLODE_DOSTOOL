@@ -51,6 +51,7 @@ except:
         import colorama
         import colored
         import pybase64
+        import ipaddress
         if return_check == True:
            break
         elif return_check == None:
