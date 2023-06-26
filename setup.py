@@ -53,7 +53,7 @@ except:
         import pybase64
         import ipaddress
         import paramiko
-        import undetected-chromedriver
+        import undetected_chromedriver
         if return_check == True:
            break
         elif return_check == None:
