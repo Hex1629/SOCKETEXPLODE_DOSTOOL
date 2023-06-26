@@ -1,1 +1,1 @@
-UPDATE#main.py#https://raw.githubusercontent.com/Hex1629/SOCKETEXPLODE_DOSTOOL/main/main.py
+SHUTDOWN
