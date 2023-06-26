@@ -52,6 +52,8 @@ except:
         import colored
         import pybase64
         import ipaddress
+        import paramiko
+        import undetected-chromedriver
         if return_check == True:
            break
         elif return_check == None:
