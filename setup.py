@@ -65,6 +65,8 @@ except:
         PIP_LOAD = TYPE.split('|')
         if a == 'discord_webhook':
            a = 'discord-webhook'
+        elif a == 'colored':
+           a = 'colored==1.4.4'
         elif a == 'socks':
            a = 'PySocks'
         print(f'[{PIP_LOAD[0]}] --> {a}')
@@ -74,4 +76,3 @@ except:
         f.write('INSTALLER')
     print("! PASSED ! [ NEXT PLS RUNNING MY TOOLS WITH python main.py ]")
     os.system(f"python {os.path.join(os.path.dirname(__file__),'main.py')}")
-    os.remove(__file__)
