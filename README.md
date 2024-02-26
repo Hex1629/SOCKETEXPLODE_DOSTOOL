@@ -1,3 +1,6 @@
+![Screenshot 2024-02-26 224644](https://github.com/Hex1629/SOCKETEXPLODE_DOSTOOL/assets/93824226/2c5dbdaa-bd52-4d30-b888-61eb79bdff0f)
+
+
 # SOCKETEXPLODE_DOSTOOL
 
 DON'T USE IT NOW | BECAUSE IT HAVE NEW BUG OF setup.py | main.py
