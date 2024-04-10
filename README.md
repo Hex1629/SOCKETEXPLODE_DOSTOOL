@@ -6,6 +6,7 @@ SOCKETEXPLODE IT BEST TOOL FOR DOWN SOME WEBSITE
 
 * SETUP & RUN AFTER
   * LINUX🌊🌊
+     
     REPLIT
     ```
     curl -O https://raw.githubusercontent.com/Hex1629/INSTALL_MYPROJECT/main/INSTALL_SCRIPT/socketexplode.replit && bash socketexplode.replit
